@@ -30,6 +30,9 @@ todoItems = todoItems.map(item => {
 // 수정 중인 항목의 ID를 추적하는 변수 (수정 모드 관리용)
 let editingTodoId = null;
 
+// 마지막 삭제/수정 동작의 상태를 보관하는 변수 (실행 취소용)
+let lastAction = null;
+
 // 현재 선택된 필터 상태 ('all' | 'active' | 'completed')
 let currentFilter = 'all';
 
@@ -94,18 +97,69 @@ function saveAndRender() {
  * 사용자에게 안내 메시지(경고/성공 등)를 토스트 형태로 표시합니다.
  * @param {string} message - 표시할 안내 메시지
  * @param {string} type - 토스트 종류 ('error' | 'success')
+ * @param {boolean} hasUndo - 실행 취소 버튼 표시 여부
  */
-function showToast(message, type = 'error') {
+function showToast(message, type = 'error', hasUndo = false) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerText = message;
+    if (hasUndo) {
+        toast.classList.add('has-undo');
+    }
+    
+    // 텍스트 영역 추가
+    const textSpan = document.createElement('span');
+    textSpan.innerText = message;
+    toast.appendChild(textSpan);
+    
+    // 실행 취소 버튼 추가
+    if (hasUndo) {
+        const undoBtn = document.createElement('button');
+        undoBtn.className = 'toast-undo-btn';
+        undoBtn.innerText = '실행 취소';
+        undoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            undoLastAction();
+            toast.remove(); // 클릭 시 토스트 즉시 삭제
+        });
+        toast.appendChild(undoBtn);
+    }
     
     toastContainer.appendChild(toast);
     
-    // 애니메이션이 끝나고 3초 후에 요소를 DOM에서 삭제
+    // 실행 취소가 있으면 5초, 없으면 3초 딜레이 설정
+    const timeoutDuration = hasUndo ? 5000 : 3000;
+    
+    // 애니메이션이 끝나고 요소를 DOM에서 삭제
     setTimeout(() => {
-        toast.remove();
-    }, 3000);
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, timeoutDuration);
+}
+
+/**
+ * 마지막 삭제 또는 수정 작업을 되돌립니다.
+ */
+function undoLastAction() {
+    if (!lastAction) return;
+    
+    if (lastAction.type === 'delete') {
+        // 원래 인덱스 위치에 아이템을 다시 삽입
+        todoItems.splice(lastAction.index, 0, lastAction.item);
+        showToast('삭제가 취소되었습니다.', 'success');
+    } else if (lastAction.type === 'edit') {
+        // 수정 전 텍스트로 원복
+        todoItems = todoItems.map(item => {
+            if (item.id === lastAction.id) {
+                return { ...item, text: lastAction.oldText };
+            }
+            return item;
+        });
+        showToast('수정이 취소되었습니다.', 'success');
+    }
+    
+    lastAction = null; // 초기화
+    saveAndRender();
 }
 
 // ==========================================
@@ -398,9 +452,18 @@ function toggleTodoComplete(id) {
  * 할 일을 삭제(Delete)합니다.
  */
 function deleteTodo(id) {
-    todoItems = todoItems.filter(item => item.id !== id);
-    showToast('할 일이 삭제되었습니다.', 'success');
-    saveAndRender();
+    const index = todoItems.findIndex(item => item.id === id);
+    if (index !== -1) {
+        const deletedItem = todoItems[index];
+        lastAction = {
+            type: 'delete',
+            index: index,
+            item: deletedItem
+        };
+        todoItems.splice(index, 1);
+        showToast('할 일이 삭제되었습니다.', 'success', true);
+        saveAndRender();
+    }
 }
 
 /**
@@ -430,15 +493,29 @@ function saveTodoEdit(id, newText) {
         return;
     }
     
-    todoItems = todoItems.map(item => {
-        if (item.id === id) {
-            return { ...item, text: trimmedText };
+    const originalItem = todoItems.find(item => item.id === id);
+    if (originalItem) {
+        // 기존 텍스트와 실제로 다른 경우에만 백업 및 토스트 생성
+        if (originalItem.text !== trimmedText) {
+            lastAction = {
+                type: 'edit',
+                id: id,
+                oldText: originalItem.text
+            };
+            todoItems = todoItems.map(item => {
+                if (item.id === id) {
+                    return { ...item, text: trimmedText };
+                }
+                return item;
+            });
+            showToast('수정이 완료되었습니다.', 'success', true);
+        } else {
+            // 변경사항이 없는 경우 모드만 해제
+            editingTodoId = null;
         }
-        return item;
-    });
+    }
     
     editingTodoId = null;
-    showToast('수정이 완료되었습니다.', 'success');
     saveAndRender();
 }
 
