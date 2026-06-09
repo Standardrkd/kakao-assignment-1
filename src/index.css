@@ -48,6 +48,12 @@ body {
     line-height: 1.5;
 }
 
+#root {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
 /* ==========================================
    Layout Containers
    ========================================== */
@@ -359,12 +365,11 @@ body {
     color: #ffffff !important;
 }
 
-/* 할 일이 있는 날을 표시하는 점 표시기 */
 .day-dot-indicator {
-    font-size: 1.1rem;
+    font-size: 0.65rem;
     line-height: 0.5;
     color: var(--primary-color);
-    margin-top: 1px;
+    margin-top: 4px;
 }
 
 /* 선택된 버튼 내부의 점 색상 반전 */
@@ -552,6 +557,7 @@ body {
     border: 1px solid transparent;
     transition: var(--transition);
     animation: slideIn 0.3s ease-out forwards;
+    min-height: 60px; /* 원래 높이로 복구 */
 }
 
 .todo-item:hover {
