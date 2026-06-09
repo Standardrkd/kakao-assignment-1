@@ -1,54 +1,100 @@
-# 킹왕짱 투-두리스트!! (React 마이그레이션)
+# 킹왕짱 투-두리스트!! (Awesome Todo List)
 
-이 프로젝트는 Vanilla JS로 작성된 투두리스트를 React로 마이그레이션한 결과물입니다. 과제 지시사항을 바탕으로 React의 핵심 개념들을 어떻게 적용했는지 아래에 설명해 드립니다.
-
-## 1. Todo CRUD 구현 (상태 및 UI 변경)
-
-Vanilla JS에서는 `prompt()` 함수를 호출하여 브라우저 기본 팝업으로 수정 기능을 처리했지만, React에서는 상태(State) 기반으로 UI를 전환합니다.
-
-- **`editingTodoId` 상태**:
-  - `App.jsx`에서 `const [editingTodoId, setEditingTodoId] = useState(null);`로 선언되어 있습니다.
-  - 이 값은 수정 중인 Todo의 ID를 저장합니다. `null`이면 아무것도 수정 중이지 않은 상태입니다.
-  - 이 상태 값이 변경되면, `TodoList`와 `TodoItem` 컴포넌트가 다시 렌더링되며, `todo.id`와 `editingTodoId`가 일치하는 항목은 인라인 입력창(`<input>`)이 있는 수정 모드 UI로 전환됩니다.
-
-- **컴포넌트 분리**:
-  - `TodoItem` 컴포넌트 안에서 `isEditing` 변수(`editingTodoId === todo.id`)를 통해 수정 모드인지 아닌지 판단합니다. 상태 하나만 바뀌면 화면이 자동으로 업데이트되는 React의 선언적 렌더링의 특징을 잘 보여줍니다.
-
-## 2. 상태별 필터링 기능
-
-Vanilla JS에서는 `querySelectorAll`을 사용해 DOM 요소의 `display`나 `class`를 직접 조작했지만, React에서는 데이터(상태)를 기반으로 화면을 다시 그립니다.
-
-- **`currentFilter` 상태**:
-  - `App.jsx`에서 `const [currentFilter, setCurrentFilter] = useState('all');`로 관리됩니다. ('all', 'active', 'completed')
-  - 사용자가 필터 탭을 클릭하면 `currentFilter` 값이 변경되고, App 컴포넌트가 다시 실행(리렌더링)됩니다.
-  - 렌더링 과정에서 현재 날짜에 해당하는 `dateFilteredItems` 배열에 대해 자바스크립트의 `filter()` 메서드를 사용하여 `currentFilter` 조건에 맞는 새로운 배열을 만들고, 이를 `TodoList` 컴포넌트에 넘겨주어 화면에 알맞은 목록만 표시합니다.
-  - 탭을 전환한 뒤에 새 항목을 추가해도, `todoItems`가 갱신되면서 다시 필터링을 거쳐 렌더링되기 때문에 필터가 자동으로 유지됩니다.
-
-## 3. Todo 일간 뷰 기능 (날짜 변경)
-
-선택된 날짜와 해당 날짜의 Todo 목록을 연결하기 위해 상태와 데이터 필터링을 함께 활용합니다.
-
-- **날짜 상태 및 저장 형태**:
-  - `currentDate` 상태를 `useState`로 관리하여 오늘 날짜 혹은 선택된 날짜를 보관합니다.
-  - 각 Todo 아이템 객체 안에는 `date: "YYYY-MM-DD"` 형태의 속성이 포함되어 있습니다. Todo를 추가할 때 현재 `currentDate` 값을 문자열로 변환하여 저장합니다.
-- **날짜 변경 시 동작**:
-  - 사용자가 `WeekNavigator`나 `MonthModal`을 통해 날짜를 변경하면 `setCurrentDate`가 호출되어 `currentDate` 상태가 바뀝니다.
-  - App 컴포넌트가 다시 렌더링될 때, 전체 `todoItems` 중에서 `item.date`가 현재 선택된 `currentDate`와 일치하는 항목만 추려내 화면에 보여주게 됩니다.
-
-## 4. 로컬 스토리지 연동 (`useEffect` 활용)
-
-Vanilla JS에서는 항목을 추가, 수정, 삭제할 때마다 `localStorage.setItem()`을 직접 호출하여 함수마다 중복 코드가 발생했습니다. React에서는 `useEffect` 훅을 사용하여 데이터의 부수 효과(Side Effect)를 한 곳에서 처리합니다.
-
-- **`useEffect`를 통한 자동 저장**:
-  ```jsx
-  useEffect(() => {
-    localStorage.setItem('todoItems', JSON.stringify(todoItems));
-  }, [todoItems]);
-  ```
-  - **의존성 배열(`[todoItems]`)**: `useEffect`의 두 번째 인자인 이 배열에 들어있는 값(`todoItems`)이 변경될 때만 내부 코드가 실행됩니다.
-  - 즉, 항목이 추가, 수정, 삭제되어 `todoItems` 상태가 바뀔 때마다 자동으로 로컬 스토리지에 최신 JSON 문자열이 저장됩니다.
-  - 앱이 처음 렌더링될 때(`useState` 초기화 함수 안에서) 한 번 로컬 스토리지의 값을 읽어와 초기 상태로 설정하기 때문에, 새로고침해도 기존 데이터가 유지됩니다.
+<p align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React">
+  <img src="https://img.shields.io/badge/Vite-B73BFE?style=flat-square&logo=vite&logoColor=FFD62E" alt="Vite">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white" alt="CSS3">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript">
+</p>
 
 ---
-**💡 React 마이그레이션의 핵심 정리**
-React는 "데이터(상태)가 바뀌면 화면은 알아서 바뀐다"는 철학을 가지고 있습니다. 기존 바닐라 JS처럼 "이 버튼을 누르면 저 요소를 찾아 숨겨라"라고 명령하는 방식(명령형)에서 벗어나, "상태에 따라 이 데이터를 보여줘라"라고 선언하는 방식(선언형)으로 코드가 훨씬 깔끔해지고 유지보수가 쉬워집니다.
+
+## 🌐 Language / 언어
+* [English](#-english-version)
+* [한국어](#-한국어-버전)
+
+---
+
+## 🏷️ Repository Tags (Topics)
+`react`, `vite`, `javascript`, `todo-list`, `calendar-view`, `productivity`, `localstorage`, `frontend`, `components`
+
+---
+
+## 🇺🇸 English Version
+
+A clean, minimalist, and premium productivity Todo web application built with **React**. 
+
+### ⚡ Tech Stack
+- **React (Hooks)** for component-based UI and reactive state management
+- **Vite** for blazing fast local development and optimized builds
+- **CSS3 (Vanilla CSS)** for custom, modern styling and micro-interactions
+
+### ✨ Key Features
+- **Add Todo (Create)**: Create a new task by typing in the input field and clicking 'Add' or pressing `Enter`.
+- **View Todos (Read)**: View all tasks beautifully organized in a card layout. 
+- **Edit Todo (Update)**: Click the 'Edit' button to turn the task card into an inline input field, make changes, and save immediately.
+- **Complete Todo (Complete)**: Toggle completion by clicking the 'Complete' button. Completed items show a strike-through text.
+- **Delete Todo (Delete)**: Instantly remove tasks from your list with a click of the 'Delete' button.
+- **Undo Functionality**: Toast notifications for Edit and Delete actions feature an 'Undo' button to quickly revert your action.
+- **Weekly View & Date Navigation**: Displays the current week's dates horizontally. Navigate past and future weeks smoothly.
+- **Month/Day Selection Modal**: Click the calendar header to open a modal. Select the year, month, and day directly.
+- **Task Indicators**: Small violet dots appear under both **Months** and **Days** that contain scheduled tasks.
+- **Status Filtering**: Filter your tasks smoothly using the *All*, *Active*, and *Completed* tabs.
+- **Data Persistence (Local Storage)**: Data is automatically synced to `localStorage` via React `useEffect` hooks.
+
+### 🎨 Design Highlights
+- **Vibrant Accent Theme**: Uses `#672be0` as the primary highlight color.
+- **Stable Layouts**: The application container is perfectly fixed in size (horizontally and vertically) to prevent visual jumps when typing or switching tabs.
+- **Smooth Animations**: Elegant card hover states, slide-in lists, and a frosted-glass blur effect (`backdrop-filter: blur`) for the modal.
+
+### 🚀 How to Use
+1. **Installation**
+   ```bash
+   npm install
+   ```
+2. **Running the Application**
+   ```bash
+   npm run dev
+   ```
+3. Open `http://localhost:5173` in your browser.
+
+---
+
+## 🇰🇷 한국어 버전
+
+깔끔하고 미니멀하며 프리미엄한 스타일의 생산성 Todo 웹 애플리케이션입니다. **React** 기반으로 작성되었습니다.
+
+### ⚡ 기술 스택
+- **React (Hooks)**
+- **Vite**
+- **CSS3 (Vanilla CSS)**
+
+### ✨ 주요 기능
+- **할 일 추가 (Create)**: 텍스트 입력 후 '추가' 버튼 클릭 또는 Enter 키를 통해 할 일을 새로 추가할 수 있습니다.
+- **할 일 조회 (Read)**: 입력된 할 일 목록이 화면에 깔끔하게 카드형태로 정렬됩니다.
+- **할 일 수정 (Update)**: '수정' 버튼 클릭 시 인라인 입력 창으로 전환되며 할 일 내용을 바로 편집하고 저장할 수 있습니다.
+- **할 일 완료 (Complete)**: '완료' 버튼 클릭 시 텍스트에 취소선이 생기며 완료된 상태로 표시됩니다.
+- **할 일 삭제 (Delete)**: '삭제' 버튼 클릭 시 해당 할 일을 목록에서 즉시 지울 수 있습니다.
+- **실행 취소(Undo)**: 할 일 삭제 및 수정 시 화면 하단에 토스트 팝업이 나타나며, '실행 취소' 버튼을 누르면 즉시 이전 상태로 복구됩니다.
+- **주간 뷰 및 날짜 변경**: 가로 스크롤 형태의 주간 캘린더 컴포넌트 제공.
+- **월/일 단위 신속 이동 모달**: 연도, 월, 일을 선택할 수 있는 직관적인 팝업을 지원합니다.
+- **할 일 등록 여부 표시**: 달력 내 '일(Day)' 뿐만 아니라 **'월(Month)' 단위에도 일정이 있으면 점(Indicator)으로 표시**하여 스케줄 파악이 매우 용이합니다.
+- **상태별 필터링**: 전체, 진행 중, 완료 탭을 통한 필터링을 지원합니다.
+- **데이터 영속성 (Local Storage)**: 브라우저 새로고침 시에도 `localStorage`를 통해 데이터가 안전하게 유지됩니다.
+
+### 🎨 디자인 포인트
+- **메인 컬러**: `#672be0` (풍부한 보라색 계열) 기반의 세련된 UI
+- **크기 변동 방지 (레이아웃 고정)**: 텍스트 길이가 길어지거나 수정 모드로 전환해도 앱 전체의 가로/세로 크기가 흔들리지 않도록 완벽하게 틀이 고정되어 있습니다.
+- **애니메이션 & 마이크로 인터랙션**: 부드러운 토스트 팝업, 모달 창의 블러 효과(`backdrop-filter`), 아이템 추가 시의 자연스러운 슬라이드 애니메이션 적용.
+
+### 🚀 사용법
+1. **패키지 설치**
+   해당 폴더 경로의 터미널에서 아래 명령어를 입력합니다.
+   ```bash
+   npm install
+   ```
+2. **개발 서버 구동**
+   ```bash
+   npm run dev
+   ```
+3. 브라우저에서 `http://localhost:5173` 으로 접속하여 이용합니다.
